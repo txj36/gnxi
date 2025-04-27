@@ -285,7 +285,7 @@ def _create_stub(creds, target, port, host_override):
       channel = gnmi_pb2_grpc.grpc.secure_channel(target + ':' + port, creds)
   else:
       channel = gnmi_pb2_grpc.grpc.insecure_channel(target + ':' + port)
-  return gnmi_pb2_grpc.gNMIStub(channel)
+  return gnmi_pb2_grpc.gNMIStub(channel), channel
 
 
 def _format_type(json_value):
@@ -589,7 +589,7 @@ def main():
         break
 
     try:
-      stub = _create_stub(creds, target, port, host_override)
+      stub, channel = _create_stub(creds, target, port, host_override)
       if mode == 'get':
         print('Performing GetRequest, encoding=JSON_IETF', 'to', target,
               ' with the following gNMI Path\n', '-'*25, '\n', paths)
@@ -643,6 +643,8 @@ def main():
       else:
         print("GRPC error\n {}".format(err.details()))
         sys.exit(1)
+    finally:
+        channel.close()
 
 
 if __name__ == '__main__':
