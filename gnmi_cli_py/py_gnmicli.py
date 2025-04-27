@@ -165,6 +165,7 @@ def _create_parser():
   parser.add_argument('--encoding', default=0, type=int, help='[0=JSON, 1=BYTES, 2=PROTO, 3=ASCII, 4=JSON_IETF]')
   parser.add_argument('--qos', default=0, type=int, help='')
   parser.add_argument('--use_alias', action='store_true', help='use alias')
+  parser.add_argument('--updates_only', action='store_true', help='updates only')
   parser.add_argument('--create_connections', type=int, nargs='?', const=1, default=1,
                       help='Creates specific number of TCP connections with gNMI server side. '
                       'Default number of TCP connections is 1 and use -1 to create '
@@ -467,7 +468,8 @@ def gen_request(paths, opt, prefix):
         myqos = None
     mysblist = gnmi_pb2.SubscriptionList(prefix=myprefix, mode=opt['subscribe_mode'],
       allow_aggregation=opt['aggregate'], encoding=opt['encoding'],
-      subscription=mysubs, use_aliases=opt['use_alias'], qos=myqos)
+      subscription=mysubs, use_aliases=opt['use_alias'], qos=myqos,
+      updates_only=opt['updates_only'])
     mysubreq = gnmi_pb2.SubscribeRequest(subscribe=mysblist)
 
     print('Sending SubscribeRequest\n'+str(mysubreq))
