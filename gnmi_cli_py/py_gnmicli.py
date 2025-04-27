@@ -38,6 +38,7 @@ import re
 import ssl
 import sys
 import string
+import time
 import six
 import datetime
 try:
@@ -153,6 +154,8 @@ def _create_parser():
                       required=False, action='store_true')
   parser.add_argument('--interval', default=10000, type=int,
                       help='sample interval in millisecond (default: 10000ms)')
+  parser.add_argument('--polling_interval', default=10000, type=int,
+                      help='polling interval in millisecond (default: 10000ms)')
   parser.add_argument('--timeout', type=int, help='subscription'
                       'duration in seconds (default: none)')
   parser.add_argument('--heartbeat', default=0, type=int, help='heartbeat interval (default: None)')
@@ -475,6 +478,12 @@ def gen_request(paths, opt, prefix):
     print('Sending SubscribeRequest\n'+str(mysubreq))
     yield mysubreq
 
+    if opt["subscribe_mode"] == 2:
+        while True:
+            time.sleep(opt['polling_interval']/1000.0)
+            mysubreq = gnmi_pb2.SubscribeRequest(poll=gnmi_pb2.Poll())
+            print('Sending SubscribeRequest\n'+str(mysubreq))
+            yield mysubreq
 
 def check_event_response(response, filter_event_regex):
     resp = str(response)
@@ -519,7 +528,7 @@ def subscribe_start(stub, options, req_iterator):
                       raise Exception("Filter event regex should not be empty")
               else:
                   print(response)
-                  if synced:
+                  if options["subscribe_mode"] != 2 and synced: # no polling
                     update_count = update_count+1
           else:
               print('Unknown response received:\n'+str(response))
