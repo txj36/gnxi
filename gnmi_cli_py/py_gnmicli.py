@@ -496,9 +496,12 @@ def subscribe_start(stub, options, req_iterator):
   try:
       responses = stub.Subscribe(req_iterator, options['timeout'], metadata=metadata)
       update_count = 0
+      synced = False
       for response in responses:
           print('{0} response received: '.format(datetime.datetime.now()))
           if response.HasField('sync_response'):
+              synced = True
+              update_count = update_count+1
               print(str(response))
           elif response.HasField('error'):
               print('gNMI Error '+str(response.error.code)+\
@@ -514,7 +517,8 @@ def subscribe_start(stub, options, req_iterator):
                       raise Exception("Filter event regex should not be empty")
               else:
                   print(response)
-                  update_count = update_count+1
+                  if synced:
+                    update_count = update_count+1
           else:
               print('Unknown response received:\n'+str(response))
           
